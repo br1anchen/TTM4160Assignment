@@ -23,7 +23,7 @@ public class Timer {
 	public void start(final Scheduler scheduler, long delay) {
 		task = new TimerTask() {
 			public void run() {
-				scheduler.addToQueueFirst(timerId);
+				scheduler.addToQueueFirst(new Event(timerId));
 			}
 		};
 		timer.schedule(task, delay);
