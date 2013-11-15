@@ -25,4 +25,9 @@ public class Event {
 		this.id = id;
 		this.data = data;
 	}
+	
+	public boolean equals(Object id){
+		return this.id.equals(id);
+	}
+	
 }
