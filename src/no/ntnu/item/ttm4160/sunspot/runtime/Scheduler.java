@@ -5,6 +5,7 @@ public class Scheduler{
 	private IStateMachine stm;
 	private ScheduleEventQueue inputQueue = new ScheduleEventQueue();
 
+	
 	public Scheduler(IStateMachine stm) {
 		this.stm = stm;
 	}
@@ -36,7 +37,7 @@ public class Scheduler{
 	 * Normal events are enqueued at the end of the queue.
 	 * @param event - the name of the event
 	 */
-	void addToQueueLast(Event event) {
+	public void addToQueueLast(Event event) {
 		inputQueue.addLast(event);
 	}
 
@@ -44,7 +45,7 @@ public class Scheduler{
 	 * Timeouts are added at the first place of the queue.
 	 * @param event - the name of the timer
 	 */
-	void addToQueueFirst(Event timerEvent) {
+	public void addToQueueFirst(Event timerEvent) {
 		inputQueue.addLast(timerEvent);
 	}
 
