@@ -1,6 +1,9 @@
 package no.ntnu.item.ttm4160.sunspot.runtime;
 
-public class Scheduler{
+import com.sun.spot.sensorboard.peripheral.ISwitch;
+import com.sun.spot.sensorboard.peripheral.ISwitchListener;
+
+public class Scheduler implements ISwitchListener{
 	/* This simplified scheduler only has one single state machine */
 	private IStateMachine stm;
 	private ScheduleEventQueue inputQueue = new ScheduleEventQueue();
@@ -50,6 +53,19 @@ public class Scheduler{
 
 	private void log(String message) {
 		System.out.println(message);
+	}
+
+    /**
+     * switch listener interface functions
+     */
+	public void switchPressed(ISwitch arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void switchReleased(ISwitch arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

@@ -1,5 +1,8 @@
 package no.ntnu.item.ttm4160.statemachines;
 
+import com.sun.spot.sensorboard.EDemoBoard;
+
+import no.ntnu.item.ttm4160.spothandler.DeviceHandler;
 import no.ntnu.item.ttm4160.sunspot.runtime.Event;
 import no.ntnu.item.ttm4160.sunspot.runtime.IStateMachine;
 import no.ntnu.item.ttm4160.sunspot.runtime.Scheduler;
@@ -21,10 +24,13 @@ public class SenderStateMachine implements IStateMachine{
 	
 	private Timer t_giveUp = new Timer("t_giveUp");
 	private Timer t_sendAgain = new Timer("t_sendAgain");
+	private DeviceHandler devicehandler;
 	
 	protected int state = STATES.IDLE;
 			
 	public int fire(Event event, Scheduler scheduler) {
+		devicehandler = new DeviceHandler(EDemoBoard.getInstance());
+		
 		if(state != STATES.WAIT_RESPONSE && event.equals(Message.ICanDisplayReadings)){
 			
 			// send a message: Denied
@@ -35,6 +41,7 @@ public class SenderStateMachine implements IStateMachine{
 		if(state == STATES.IDLE) {
 			
 			//subscribe the buttons
+			devicehandler.subscribeButtons(new int[] {1,2}, scheduler);
 			
 			state = STATES.READY;
 			return EXECUTE_TRANSITION;
@@ -61,6 +68,7 @@ public class SenderStateMachine implements IStateMachine{
 			}else if(event.equals(TIMER_GiveUp)){
 				
 				//blink LEDs
+				devicehandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}
@@ -72,6 +80,7 @@ public class SenderStateMachine implements IStateMachine{
 				this.t_sendAgain.start(scheduler, 100);
 				
 				//do lightReading
+				int result = devicehandler.doLigthReading();
 				
 				//send a message with reading result
 				
@@ -81,6 +90,7 @@ public class SenderStateMachine implements IStateMachine{
 				// send a message: SenderDisconnect
 				
 				//blink LEDs
+				devicehandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}else if(event.equals(Message.ReceiverDisconnect)){
@@ -88,6 +98,7 @@ public class SenderStateMachine implements IStateMachine{
 				this.t_sendAgain.stop();
 				
 				//blink LEDS
+				devicehandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}
