@@ -6,6 +6,7 @@ TTM4160 Term Assignment
 2013
 
 Description:
+
 Class SunSpotApplication - main class to start application for spot , with start method
 startApp()
 
