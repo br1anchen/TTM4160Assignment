@@ -5,25 +5,29 @@ import java.io.IOException;
 import com.sun.spot.sensorboard.EDemoBoard;
 import com.sun.spot.sensorboard.peripheral.ILightSensor;
 import com.sun.spot.sensorboard.peripheral.ISwitch;
+import com.sun.spot.sensorboard.peripheral.ISwitchListener;
 import com.sun.spot.sensorboard.peripheral.ITriColorLED;
 import com.sun.spot.util.Utils;
 
 import no.ntnu.item.ttm4160.spothandler.SpotFont;
+import no.ntnu.item.ttm4160.sunspot.communication.Message;
+import no.ntnu.item.ttm4160.sunspot.runtime.Event;
 import no.ntnu.item.ttm4160.sunspot.runtime.Scheduler;
 
 public class DeviceHandler{
 	public static int BUTTON1 = 1;
 	public static int BUTTON2 = 2;
 
-	private EDemoBoard demoBoard;
-	private ITriColorLED[] LED;
-	private ILightSensor lightSensor;
-	private ISwitch[] switches;
-	private SpotFont font;
-    private int dots[];
+	private static EDemoBoard demoBoard;
+	private static ITriColorLED[] LED;
+	private static ILightSensor lightSensor;
+	private static ISwitch[] switches;
+	private static SpotFont font;
+   
     
-    public DeviceHandler( EDemoBoard inBoard ) {
-        demoBoard = inBoard;
+	//Init device in the begin 
+    public static void initDevice(EDemoBoard inBoard){
+    	demoBoard = inBoard;
         LED = demoBoard.getLEDs();
         lightSensor = demoBoard.getLightSensor();
         switches = demoBoard.getSwitches();
@@ -34,43 +38,44 @@ public class DeviceHandler{
         }
     }
     
-    public void setColor( int red, int green, int blue ){
+    public static void setColor( int red, int green, int blue ){
         for ( int i = 0; i < LED.length; i++ ) {
             LED[i].setOff();
             LED[i].setRGB((red==0)?0:255,(green==0)?0:255,(blue==0)?0:255);
         }
     }
     
-    public void subscribeButtons(int[] buttons,Scheduler scheduler){//not really sure about who should listener button pressed
-    	for ( int i = 0; i < buttons.length; i++ ){
-    		switch(buttons[i]){
-    			case 1:
-    				switches[0].addISwitchListener(scheduler);
-    				break;
-    			case 2:
-    		        switches[1].addISwitchListener(scheduler);
-    		        break;
-    		}
-    	}
+    // Buttons will send message to scheduler 
+    public static void setButtonsListener(final Scheduler scheduler){
+    	switches[0].addISwitchListener(new ISwitchListener(){
+			public void switchPressed(ISwitch arg0) {}
+			public void switchReleased(ISwitch arg0) {
+				scheduler.addToQueueFirst(new Event(Message.button1Pressed));
+			}});
+    	switches[1].addISwitchListener(new ISwitchListener(){
+			public void switchPressed(ISwitch arg0) {}
+			public void switchReleased(ISwitch arg0) {
+				scheduler.addToQueueFirst(new Event(Message.button2Pressed));
+			}});
     }
     
-    public void blinkLEDs(){
+    
+    // Blink with LEDs
+    public static void blinkLEDs(){
     	for (int i = 0; i < 3; i++ ) { //blink 3 times
     		for ( int n = 0; n < LED.length; n++ ) {
     			LED[n].setOn();
     		}
-    		
-    		Utils.sleep(250);               // on for 1/4 second
-    		
+    		Utils.sleep(150);               // on for 1/4 second
     		for ( int n = 0; n < LED.length; n++ ) {
     			LED[n].setOff();
     		}
-
-            Utils.sleep(750);               // off for 3/4 second
+            Utils.sleep(350);               // off for 3/4 second
         }
     }
     
-    public int doLigthReading(){
+    
+    public static int doLigthReading(){
     	int lightLevel = -1;
 		try {
 			lightLevel = lightSensor.getValue();
@@ -82,10 +87,9 @@ public class DeviceHandler{
 		}
 		
     	return lightLevel;
-
     }
     
-    public void displayOnLEDs(String result){
+    public static void displayOnLEDs(String result){
     	for( int i = 0; i < result.length(); i++ ){
             displayCharacterForward( result.charAt(i) );
         }
@@ -95,7 +99,8 @@ public class DeviceHandler{
      * Display a single character left to right
      * @param character Character to be displayed
      */
-    public void displayCharacterForward( char character ){
+    public static void displayCharacterForward( char character ){
+    	int dots[];
         try {
             dots = font.getChar(character);
             
@@ -122,7 +127,7 @@ public class DeviceHandler{
      * LEDs on/off status (1 = on, 0 = off). This really should be 
      * an unsigned byte (but there isn't one).
      */
-    public void bltLEDs(int ledMap){
+    public static void bltLEDs(int ledMap){
         for ( int i = 0; i < LED.length; i++ ) {
             LED[i].setOn(((ledMap>>i)&1)==1);
         }
