@@ -336,6 +336,10 @@ public class Communications implements ICommunicationLayer{
 		listeners.addElement(listener);
 	}
 
+	public String getCommunicationMac() {
+		return this.myMACAddress;
+	}
+
 }
 
 

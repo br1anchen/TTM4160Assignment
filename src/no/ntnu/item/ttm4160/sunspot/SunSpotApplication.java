@@ -26,10 +26,17 @@ package no.ntnu.item.ttm4160.sunspot;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 
+import no.ntnu.item.ttm4160.spothandler.DeviceHandler;
+import no.ntnu.item.ttm4160.statemachines.RecieverStateMachine;
+import no.ntnu.item.ttm4160.statemachines.SenderStateMachine;
+import no.ntnu.item.ttm4160.sunspot.communication.Communications;
+import no.ntnu.item.ttm4160.sunspot.communication.ICommunicationLayerListener;
+import no.ntnu.item.ttm4160.sunspot.communication.Message;
+import no.ntnu.item.ttm4160.sunspot.runtime.Event;
 import no.ntnu.item.ttm4160.sunspot.runtime.Scheduler;
 
 import com.sun.spot.peripheral.Spot;
-import com.sun.spot.sensorboard.peripheral.LightSensor;
+import com.sun.spot.sensorboard.EDemoBoard;
 import com.sun.spot.util.BootloaderListener;
 import com.sun.spot.util.IEEEAddress;
 
@@ -43,6 +50,42 @@ import com.sun.spot.util.IEEEAddress;
 public class SunSpotApplication extends MIDlet {
 	
 	Scheduler scheduler;
+	Communications communications;
+	
+	private void initSPOT(){
+		// Initial device hardware functionality
+		DeviceHandler.initDevice(EDemoBoard.getInstance());
+		//create Scheduler
+        scheduler = new Scheduler();
+        // Initial connection 
+     	String spotMacAddress = new IEEEAddress(Spot.getInstance().getRadioPolicyManager().getIEEEAddress() ).asDottedHex();
+     	communications = new Communications(spotMacAddress);
+     	communications.registerListener(new ICommunicationLayerListener(){
+
+			public void inputReceived(Message msg) {
+				String reciever  = msg.getReceiver();
+				int index=reciever.indexOf(":");
+				int targetId = 0;
+				if(index!=-1){
+					if(index+1 > reciever.length()){
+						String targetIdString =  reciever.substring(index+1, reciever.length());
+						try{
+							targetId = Integer.parseInt(targetIdString);
+						}catch(Exception e){
+							targetId = 0;
+						}
+					}
+				}
+				
+				msg.getContentEvent();
+				
+				Event communicationEvent = new Event(msg.getContentEvent(), msg, targetId);
+				// Add incoming event to event queue
+				scheduler.addToQueueLast(communicationEvent);
+			}
+        });
+     		
+	}
 	
 	
     protected void startApp() throws MIDletStateChangeException {
@@ -53,7 +96,16 @@ public class SunSpotApplication extends MIDlet {
         /*
          * Instantiate the scheduler and the state machines, then start the scheduler.
          */
+        initSPOT();
+       
+        // create state machines  int id, ICommunicationLayer communicationLayer
+        SenderStateMachine senderStateMachine = new SenderStateMachine(Scheduler.generateStateMachineID(), communications);
+        RecieverStateMachine recieverStateMachine = new RecieverStateMachine(Scheduler.generateStateMachineID(), communications);
+       
+        scheduler.addStateMachine(senderStateMachine);
+        scheduler.addStateMachine(recieverStateMachine);        
         
+        new Thread(scheduler).start();
         
     }
     

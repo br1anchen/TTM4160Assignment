@@ -9,4 +9,6 @@ public interface IStateMachine {
 	
 	public int fire(Event event, Scheduler scheduler);
 	
+	public int getStateMachineID();
+	
 }

@@ -14,8 +14,9 @@ public class Timer {
 	private long delay;
 	private TimerTask task;
 	private java.util.Timer timer;
+	private int targetId;
 	
-	public Timer(String timerId) {
+	public Timer(String timerId, int targetId) {
 		this.timer = new java.util.Timer();
 		this.timerId = timerId;
 	}
@@ -23,7 +24,7 @@ public class Timer {
 	public void start(final Scheduler scheduler, long delay) {
 		task = new TimerTask() {
 			public void run() {
-				scheduler.addToQueueFirst(new Event(timerId));
+				scheduler.addTimerEvent(new Event(timerId, targetId));
 			}
 		};
 		timer.schedule(task, delay);

@@ -77,6 +77,16 @@ public class Message {
 		return content;
 	}
 	
+	public String getContentEvent(){
+		int index=receiver.indexOf(":");
+		if(index==-1){
+			//":" not found
+			return content;
+		}else{
+			return receiver.substring(0, index);
+		}
+	}
+	
 	public String toString() {
 		return "Sender: "+sender+", Receiver: "+receiver+", Content: "+content;
 	}

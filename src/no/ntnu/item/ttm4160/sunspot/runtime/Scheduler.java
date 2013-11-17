@@ -1,38 +1,48 @@
 package no.ntnu.item.ttm4160.sunspot.runtime;
 
-import com.sun.spot.sensorboard.peripheral.ISwitch;
-import com.sun.spot.sensorboard.peripheral.ISwitchListener;
 
-public class Scheduler implements ISwitchListener{
+public class Scheduler  implements Runnable{
 	/* This simplified scheduler only has one single state machine */
-	private IStateMachine stm;
-	private ScheduleEventQueue inputQueue = new ScheduleEventQueue();
+	private ScheduleEventQueue inputQueue = null;
+	private StateMachinesBuffer stateMachinesBuffer = null;
+	private static int allowedStateMachineID = 0;
 
+	public Scheduler() {
+		this.stateMachinesBuffer = new StateMachinesBuffer(this);
+		this.inputQueue = new ScheduleEventQueue();
+	}
 	
-	public Scheduler(IStateMachine stm) {
-		this.stm = stm;
+	public static int generateStateMachineID(){
+		Scheduler.allowedStateMachineID ++;
+		return Scheduler.allowedStateMachineID;
+	}
+	
+	public void addStateMachine(IStateMachine stm){
+		this.stateMachinesBuffer.addStateMachine(stm);
+		// generate event to start StateMachine 
+		Event startEvent = new Event("start", stm.getStateMachineID());
+		this.inputQueue.addFirst(startEvent);
+		
+		
+		log("Adding State Machine");
 	}
 
 	public void run() {
 		boolean running = true;
 		while(running) {
 
-				// wait for a new event arriving in the queue
-
-				if(!inputQueue.isEmpty()){
-					Event event = inputQueue.take();
-					
-					// execute a transition
-					log("Scheduler: firing state machine with event: " + event);
-					int result = stm.fire(event, this);
-					if(result==IStateMachine.DISCARD_EVENT) {
-						log("Discarded Event: " + event);
-					} else if(result==IStateMachine.TERMINATE_SYSTEM) {
-						log("Terminating System... Good bye!");
-						running = false;
-					}
-				}
-
+			// wait for a new event arriving in the queue or timer event
+			Event event = null;
+			if(!inputQueue.isTimerEmpty()){
+				event = inputQueue.takeTimer();
+			}else if(!inputQueue.isEmpty()){
+				event = inputQueue.take();
+			}else{
+				continue;
+			}
+				
+			// send event to all state machines or with id
+			this.stateMachinesBuffer.fire(event);
 		}
 	}
 
@@ -45,31 +55,27 @@ public class Scheduler implements ISwitchListener{
 	}
 
 	/**
-	 * Timeouts are added at the first place of the queue.
+	 * UI events are added at the first place of the queue.
 	 * @param event - the name of the timer
 	 */
-	public void addToQueueFirst(Event timerEvent) {
-		inputQueue.addLast(timerEvent);
+	public void addToQueueFirst(Event event) {
+		inputQueue.addLast(event);
 	}
 
+	/**
+	 * Adding Event from Timer
+	 * @param timerEvent - event from timer
+	 */
+	public void addTimerEvent(Event timerEvent){
+		inputQueue.addTimer(timerEvent);
+	}
+	
+	/**
+	 * Logger
+	 * @param message - message to display on the screen
+	 */
 	private void log(String message) {
 		System.out.println(message);
 	}
 
-    /**
-     * switch listener interface functions
-     */
-	public void switchPressed(ISwitch arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void switchReleased(ISwitch arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	
-	
 }

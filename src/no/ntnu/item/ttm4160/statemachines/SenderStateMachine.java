@@ -1,7 +1,5 @@
 package no.ntnu.item.ttm4160.statemachines;
 
-import com.sun.spot.sensorboard.EDemoBoard;
-
 import no.ntnu.item.ttm4160.spothandler.DeviceHandler;
 import no.ntnu.item.ttm4160.sunspot.runtime.Event;
 import no.ntnu.item.ttm4160.sunspot.runtime.IStateMachine;
@@ -11,6 +9,8 @@ import no.ntnu.item.ttm4160.sunspot.communication.*;
 
 
 public class SenderStateMachine implements IStateMachine{
+	private int state_machine_id = 0;
+	private ICommunicationLayer communicationLayer;
 	
 	private static final String TIMER_GiveUp = "t_giveUp",TIMER_SendAgain = "t_sendAgain";
 	
@@ -18,31 +18,35 @@ public class SenderStateMachine implements IStateMachine{
 		private static int IDLE = 1,
 				READY = 2,
 				WAIT_RESPONSE = 3,
-				SENDING = 4,
-				FINAL = 5;
+				SENDING = 4;
 	}
 	
-	private Timer t_giveUp = new Timer("t_giveUp");
-	private Timer t_sendAgain = new Timer("t_sendAgain");
-	private DeviceHandler devicehandler;
+	private Timer t_giveUp = null;
+	private Timer t_sendAgain = null;
+	
+	private String currentConnection = null;
+
 	
 	protected int state = STATES.IDLE;
+	
+	public SenderStateMachine(int id, ICommunicationLayer communicationLayer){
+		this.state_machine_id = id;
+		this.communicationLayer = communicationLayer;
+		
+		this.t_giveUp = new Timer(TIMER_GiveUp, this.state_machine_id);
+		this.t_sendAgain = new Timer(TIMER_SendAgain,  this.state_machine_id);
+	}
 			
 	public int fire(Event event, Scheduler scheduler) {
-		devicehandler = new DeviceHandler(EDemoBoard.getInstance());
 		
 		if(state != STATES.WAIT_RESPONSE && event.equals(Message.ICanDisplayReadings)){
-			
-			// send a message: Denied
+			Message incomeMessage = (Message) event.getData();
+			sendDenied(incomeMessage.getSender());
 			
 			return EXECUTE_TRANSITION;
 		}
 		
 		if(state == STATES.IDLE) {
-			
-			//subscribe the buttons
-			devicehandler.subscribeButtons(new int[] {1,2}, scheduler);
-			
 			state = STATES.READY;
 			return EXECUTE_TRANSITION;
  
@@ -51,7 +55,7 @@ public class SenderStateMachine implements IStateMachine{
 				
 				this.t_giveUp.start(scheduler, 500);
 				
-				// boardcast a message: CanYouDisplayMyReadings
+				sendBroadcastCanYouDisplayReadings();
 				
 				state = STATES.WAIT_RESPONSE;
 			}
@@ -59,16 +63,16 @@ public class SenderStateMachine implements IStateMachine{
 			return EXECUTE_TRANSITION;
 		} else if(state == STATES.WAIT_RESPONSE){
 			if(event.equals(Message.ICanDisplayReadings)){
-				
-				//send a message: Approved
+				Message incomeMessage = (Message) event.getData();
+				this.currentConnection = incomeMessage.getSender();
+				sendApproved(this.currentConnection);
 				
 				this.t_sendAgain.start(scheduler, 100);
 				
 				state = STATES.SENDING;
 			}else if(event.equals(TIMER_GiveUp)){
-				
-				//blink LEDs
-				devicehandler.blinkLEDs();
+
+				DeviceHandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}
@@ -79,26 +83,24 @@ public class SenderStateMachine implements IStateMachine{
 				
 				this.t_sendAgain.start(scheduler, 100);
 				
-				//do lightReading
-				int result = devicehandler.doLigthReading();
+				int result = DeviceHandler.doLigthReading();
 				
-				//send a message with reading result
+				sendReadingResult(this.currentConnection, result);
 				
 				state = STATES.SENDING;
 			}else if(event.equals(Message.button2Pressed)){
 				
-				// send a message: SenderDisconnect
+				sendSenderDisconnect(this.currentConnection);
+				this.currentConnection = null;
 				
-				//blink LEDs
-				devicehandler.blinkLEDs();
+				DeviceHandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}else if(event.equals(Message.ReceiverDisconnect)){
 				
 				this.t_sendAgain.stop();
-				
-				//blink LEDS
-				devicehandler.blinkLEDs();
+				this.currentConnection = null;
+				DeviceHandler.blinkLEDs();
 				
 				state = STATES.READY;
 			}
@@ -108,6 +110,65 @@ public class SenderStateMachine implements IStateMachine{
 		
 		
 		return DISCARD_EVENT;
+	}
+	
+
+	private void sendDenied(String toAddress){
+		if(toAddress==null)
+			return;
+		String sender = this.communicationLayer.getCommunicationMac() + ':' + this.state_machine_id;
+		String reciever = toAddress;
+		String content = Message.Denied;
+		Message msg = new Message(sender, reciever, content);
+		
+		this.communicationLayer.sendRemoteMessage(msg);
+	}
+	
+	private void sendBroadcastCanYouDisplayReadings(){
+		String sender = this.communicationLayer.getCommunicationMac() + ':' + this.state_machine_id;
+		String reciever = Message.BROADCAST_ADDRESS;
+		String content = Message.CanYouDisplayMyReadings;
+		Message msg = new Message(sender, reciever, content);
+		
+		this.communicationLayer.sendRemoteMessage(msg);
+	}
+	
+	private void sendSenderDisconnect(String toAddress){
+		if(toAddress==null)
+			return;
+		String sender = this.communicationLayer.getCommunicationMac() + ':' + this.state_machine_id;
+		String reciever = toAddress;
+		String content = Message.SenderDisconnect;
+		Message msg = new Message(sender, reciever, content);
+		
+		this.communicationLayer.sendRemoteMessage(msg);
+	}
+	
+	private void sendReadingResult(String toAddress, int result){
+		if(toAddress==null)
+			return;
+		String sender = this.communicationLayer.getCommunicationMac() + ':' + this.state_machine_id;
+		String reciever = toAddress;
+		String content = Message.Reading + result;
+		Message msg = new Message(sender, reciever, content);
+		
+		this.communicationLayer.sendRemoteMessage(msg);
+	}
+	
+	private void sendApproved(String toAddress){
+		if(toAddress==null)
+			return;
+		String sender = this.communicationLayer.getCommunicationMac() + ':' + this.state_machine_id;
+		String reciever = toAddress;
+		String content = Message.Approved;
+		Message msg = new Message(sender, reciever, content);
+		
+		this.communicationLayer.sendRemoteMessage(msg);
+	}
+	
+
+	public int getStateMachineID() {
+		return this.state_machine_id;
 	}
 	
 }
