@@ -12,15 +12,22 @@ startApp()
 RealtimeSystem main elements:
 
 1. Event  - events inside state machine fields
+
 	id - Event id
+
 	data - Event data
+
 	targetID - id of the target or 0 if to every state machines
 
 2. Scheduler - routing events  consist of eventQueue and Timer queue, Timer queue has priority more ! all events routing depends on targetId(StateMachine id)
+
 	generateStateMachineId() - generate unique id for state machine
+
 	addStateMachine() - add state machine to system
+
 	add to queue event methods... ()  
 3. StateMachine - IStateMachine interface with methods
+
 	public int fire(Event event, Scheduler scheduler); implement one transaction
 	
 	public int getStateMachineID(); - getting ID of state machine 
