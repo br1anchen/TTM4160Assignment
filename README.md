@@ -27,6 +27,7 @@ RealtimeSystem main elements:
 	
 	
 Example of initiating a system
+
 scheduler = new Scheduler();
 
 // Creating state machines
