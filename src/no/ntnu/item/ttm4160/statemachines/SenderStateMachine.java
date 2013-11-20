@@ -47,13 +47,14 @@ public class SenderStateMachine implements IStateMachine{
 		}
 		
 		if(state == STATES.IDLE) {
-			state = STATES.READY;
-			return EXECUTE_TRANSITION;
- 
+			if(event.equals(Scheduler.START_EVENT)){
+				state = STATES.READY;
+				return EXECUTE_TRANSITION;
+			}
 		} else if(state == STATES.READY) {
 			if(event.equals(Message.button1Pressed)) {
 				
-				this.t_giveUp.start(scheduler, 500);
+				this.t_giveUp.start(scheduler, 1000);
 				
 				sendBroadcastCanYouDisplayReadings();
 				
@@ -169,6 +170,11 @@ public class SenderStateMachine implements IStateMachine{
 
 	public int getStateMachineID() {
 		return this.state_machine_id;
+	}
+
+	public int getCurrentState() {
+		// TODO Auto-generated method stub
+		return this.state;
 	}
 	
 }

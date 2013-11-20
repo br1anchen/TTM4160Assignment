@@ -11,3 +11,4 @@
 build.properties
 build.xml
 .classpath
+resources/

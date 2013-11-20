@@ -38,29 +38,41 @@ public class RecieverStateMachine implements IStateMachine{
 	}
 	
 	public int fire(Event event, Scheduler scheduler) {
-		if(!(state == STATES.BUSY)&&event.equals(Message.Reading)){
+		//System.out.println("Fire EventID:" + event.getId() + " state: " + state);
+		if((state != STATES.BUSY) && event.equals(Message.Reading)){
+			//System.out.println("Wrong disconnect!");
 			Message incomeMessage = (Message) event.getData();
 			sendRecieverDisconnect(incomeMessage.getSender());
 			return EXECUTE_TRANSITION;
 		}
 		
 		if(state==STATES.IDLE) {
-			state = STATES.FREE;
-			return EXECUTE_TRANSITION;
+			if(event.equals(Scheduler.START_EVENT)){
+				System.out.println("Start state machine : " + this.state_machine_id );
+				state = STATES.FREE;
+				return EXECUTE_TRANSITION;
+			}
 		}else if(state==STATES.FREE){
 			if(event.equals(Message.CanYouDisplayMyReadings)){
 				Message incomeMessage = (Message) event.getData();
 				
 				sendICanDisplayMessage(incomeMessage.getSender());
+				timerTimeout.start(scheduler, 1000);
 				state = STATES.WAIT_APPROVED;
 				return EXECUTE_TRANSITION;
 			}
 		}else if(state==STATES.WAIT_APPROVED){
-			if(event.equals(Message.Approved)){
+			if(event.equals(MSG_TIMEOUT_T1)){
+				state = STATES.FREE;
+				return EXECUTE_TRANSITION;
+			}else if(event.equals(Message.Approved)){
+				timerTimeout.stop();
+				DeviceHandler.blinkLED1();
 				// set current address connection 
 				Message incomeMessage = (Message) event.getData();
 				this.currentConnection = incomeMessage.getSender();
 				timerTimeout.start(scheduler, 5000);
+				//System.out.println("Approved recieved");
 				state = STATES.BUSY;
 				return EXECUTE_TRANSITION;
 			}else if(event.equals(Message.Denied)){
@@ -153,6 +165,11 @@ public class RecieverStateMachine implements IStateMachine{
 
 	public int getStateMachineID() {
 		return this.state_machine_id;
+	}
+
+	public int getCurrentState() {
+		// TODO Auto-generated method stub
+		return this.state;
 	}
 	
 

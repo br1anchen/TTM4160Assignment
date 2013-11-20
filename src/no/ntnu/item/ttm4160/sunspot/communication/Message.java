@@ -78,12 +78,12 @@ public class Message {
 	}
 	
 	public String getContentEvent(){
-		int index=receiver.indexOf(":");
+		int index=content.indexOf(":");
 		if(index==-1){
 			//":" not found
 			return content;
 		}else{
-			return receiver.substring(0, index);
+			return content.substring(0, index+1);
 		}
 	}
 	

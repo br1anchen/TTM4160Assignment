@@ -11,7 +11,6 @@ import javax.microedition.io.Connector;
 import javax.microedition.io.Datagram;
 import javax.microedition.io.DatagramConnection;
 
-
 import com.sun.spot.io.j2me.radiogram.RadiogramConnection;
 import com.sun.spot.io.j2me.radiostream.RadiostreamConnection;
 import com.sun.spot.peripheral.NoRouteException;
@@ -168,6 +167,7 @@ public class Communications implements ICommunicationLayer{
     			}
     		}
     		else if(msg.getReceiver().equals(Message.BROADCAST_ADDRESS)){
+    			//System.out.println("Broadcast recieved : " + myMACAddress );
     			addMessage(msg);
     		}
     		else{
@@ -308,7 +308,13 @@ public class Communications implements ICommunicationLayer{
 			    outStream=null;
 			}
 			else{
-				sendQueue.addElement(msg);
+				if(msg.equals(Message.Denied)||msg.equals(Message.SenderDisconnect)
+						||msg.equals(Message.ReceiverDisconnect)){
+					sendQueue.insertElementAt(msg,0);
+				}else{
+					sendQueue.addElement(msg);
+				}
+				
 			}
 	    }
 		

@@ -29,7 +29,8 @@ public class StateMachinesBuffer {
 				int result = iStateMachine.fire(event, scheduler);
 				
 				if(result==IStateMachine.DISCARD_EVENT) {
-					log("StateMachine: " + iStateMachine.getStateMachineID() + " Discarded Event: " + event);
+					log("StateMachine: " + iStateMachine.getStateMachineID() + " Discarded Event: " + event.getId() +
+							" State: " + iStateMachine.getCurrentState());
 				}
 			}catch(ArrayIndexOutOfBoundsException e){
 				

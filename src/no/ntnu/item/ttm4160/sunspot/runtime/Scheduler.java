@@ -6,6 +6,7 @@ public class Scheduler  implements Runnable{
 	private ScheduleEventQueue inputQueue = null;
 	private StateMachinesBuffer stateMachinesBuffer = null;
 	private static int allowedStateMachineID = 0;
+	public static final String START_EVENT = "start";
 
 	public Scheduler() {
 		this.stateMachinesBuffer = new StateMachinesBuffer(this);
@@ -20,7 +21,7 @@ public class Scheduler  implements Runnable{
 	public void addStateMachine(IStateMachine stm){
 		this.stateMachinesBuffer.addStateMachine(stm);
 		// generate event to start StateMachine 
-		Event startEvent = new Event("start", stm.getStateMachineID());
+		Event startEvent = new Event(START_EVENT, stm.getStateMachineID());
 		this.inputQueue.addFirst(startEvent);
 		
 		
@@ -36,13 +37,14 @@ public class Scheduler  implements Runnable{
 			if(!inputQueue.isTimerEmpty()){
 				event = inputQueue.takeTimer();
 			}else if(!inputQueue.isEmpty()){
-				event = inputQueue.take();
+				event = inputQueue.take();	
 			}else{
 				continue;
 			}
-				
 			// send event to all state machines or with id
-			this.stateMachinesBuffer.fire(event);
+			if(event != null){
+				this.stateMachinesBuffer.fire(event);
+			}
 		}
 	}
 
@@ -59,7 +61,7 @@ public class Scheduler  implements Runnable{
 	 * @param event - the name of the timer
 	 */
 	public void addToQueueFirst(Event event) {
-		inputQueue.addLast(event);
+		inputQueue.addFirst(event);
 	}
 
 	/**

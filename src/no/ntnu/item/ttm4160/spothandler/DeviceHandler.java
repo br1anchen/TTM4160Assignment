@@ -32,7 +32,7 @@ public class DeviceHandler{
         lightSensor = demoBoard.getLightSensor();
         switches = demoBoard.getSwitches();
         font = new SpotFont();
-        setColor( 0, 0, 0);
+        setColor( 1, 0, 0);
         for ( int i = 0; i < LED.length; i++ ) {
             LED[i].setOff();
         }
@@ -62,6 +62,8 @@ public class DeviceHandler{
     
     // Blink with LEDs
     public static void blinkLEDs(){
+    	setColor(1,0,0);
+    	clearLEDs();
     	for (int i = 0; i < 3; i++ ) { //blink 3 times
     		for ( int n = 0; n < LED.length; n++ ) {
     			LED[n].setOn();
@@ -74,6 +76,22 @@ public class DeviceHandler{
         }
     }
     
+    public static void clearLEDs(){
+    	for ( int n = 0; n < LED.length; n++ ) {
+			LED[n].setOff();
+		}
+    }
+    
+    public static void blinkLED1(){
+    	setColor(1,1,0);
+    	clearLEDs();
+    	for (int i = 0; i < 3; i++ ) { //blink 3 times
+    		LED[0].setOn();
+    		Utils.sleep(150);               // on for 1/4 second
+    		LED[0].setOff();
+    		Utils.sleep(350);               // off for 3/4 second
+        }
+    }
     
     public static int doLigthReading(){
     	int lightLevel = -1;
@@ -88,11 +106,14 @@ public class DeviceHandler{
 		
     	return lightLevel;
     }
-    
+    private static final float MAX_LIGHT = 750.0f;
     public static void displayOnLEDs(String result){
-    	for( int i = 0; i < result.length(); i++ ){
-            displayCharacterForward( result.charAt(i) );
-        }
+    	float floatResult = Float.parseFloat(result); 
+    	int ledsCount = (int)((floatResult/MAX_LIGHT)*8);
+    	setColor(0,1,0);
+    	for ( int n = 0; n < ledsCount; n++ ) {
+			LED[n].setOn();
+		}
     }
     
     /**

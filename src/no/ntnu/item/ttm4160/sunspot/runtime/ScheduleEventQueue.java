@@ -8,7 +8,7 @@ public class ScheduleEventQueue {
 	
 	public Event take(){
 		Event result = (Event)queue.firstElement();
-		queue.removeElement(result);
+		queue.removeElementAt(0);
 		return result;
 	}
 
@@ -27,7 +27,7 @@ public class ScheduleEventQueue {
 	// Methods for Timer
 	public Event takeTimer(){
 		Event result = (Event)timerQueue.firstElement();
-		timerQueue.removeElement(result);
+		timerQueue.removeElementAt(0);
 		return result;
 	}
 	public boolean isTimerEmpty() {
