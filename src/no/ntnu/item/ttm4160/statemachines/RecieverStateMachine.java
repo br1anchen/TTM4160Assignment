@@ -79,7 +79,7 @@ public class RecieverStateMachine implements IStateMachine{
 				state = STATES.FREE;
 				return EXECUTE_TRANSITION;
 			}else if(event.equals(Message.CanYouDisplayMyReadings)){
-				scheduler.addToQueueLast(event);
+				scheduler.saveEvent(event, this.state_machine_id);
 				return EXECUTE_TRANSITION;
 			}
 		}else if(state==STATES.BUSY){

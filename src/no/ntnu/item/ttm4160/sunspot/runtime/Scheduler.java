@@ -55,6 +55,11 @@ public class Scheduler  implements Runnable{
 	public void addToQueueLast(Event event) {
 		inputQueue.addLast(event);
 	}
+	
+	public void saveEvent(Event event, int targetID){
+		Event savedEvent = new Event(event, targetID);
+		inputQueue.addLast(savedEvent);
+	}
 
 	/**
 	 * UI events are added at the first place of the queue.

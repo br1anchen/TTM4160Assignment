@@ -23,6 +23,12 @@ public class Event {
 		this.id = id;
 	}
 	
+	public Event(Event event, int targetID){
+		this.id = event.getId();
+		this.data = event.getData();
+		this.targetID = targetID;
+	}
+	
 	public Event(String id, int targetID){
 		this.id = id;
 		this.targetID = targetID;
