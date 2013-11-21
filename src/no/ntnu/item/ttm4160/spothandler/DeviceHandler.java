@@ -9,7 +9,6 @@ import com.sun.spot.sensorboard.peripheral.ISwitchListener;
 import com.sun.spot.sensorboard.peripheral.ITriColorLED;
 import com.sun.spot.util.Utils;
 
-import no.ntnu.item.ttm4160.spothandler.SpotFont;
 import no.ntnu.item.ttm4160.sunspot.communication.Message;
 import no.ntnu.item.ttm4160.sunspot.runtime.Event;
 import no.ntnu.item.ttm4160.sunspot.runtime.Scheduler;
@@ -22,7 +21,6 @@ public class DeviceHandler{
 	private static ITriColorLED[] LED;
 	private static ILightSensor lightSensor;
 	private static ISwitch[] switches;
-	private static SpotFont font;
    
     
 	//Init device in the begin 
@@ -31,7 +29,6 @@ public class DeviceHandler{
         LED = demoBoard.getLEDs();
         lightSensor = demoBoard.getLightSensor();
         switches = demoBoard.getSwitches();
-        font = new SpotFont();
         setColor( 1, 0, 0);
         for ( int i = 0; i < LED.length; i++ ) {
             LED[i].setOff();
@@ -116,43 +113,6 @@ public class DeviceHandler{
 		}
     }
     
-    /**
-     * Display a single character left to right
-     * @param character Character to be displayed
-     */
-    public static void displayCharacterForward( char character ){
-    	int dots[];
-        try {
-            dots = font.getChar(character);
-            
-            for ( int i = 0; i < dots.length; i++ ){
-                bltLEDs( dots[i] );
-                // System.out.print(character);
-                Thread.sleep(1);
-            }
-            bltLEDs(0);
-            Thread.sleep(1);
-            
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-    }
-    
-    /**
-     * Set the LEDs to a specified pattern.  This allows you to set
-     * the status of all the LEDs at once.  Note that we don't provide
-     * support for intensity levels because on LEDs intensities are
-     * acheived by pulsing the LED and this would screw up the data we
-     * are trying to display.
-     * @param ledMap Each of the lower 8 bits corresponds to an 
-     * LEDs on/off status (1 = on, 0 = off). This really should be 
-     * an unsigned byte (but there isn't one).
-     */
-    public static void bltLEDs(int ledMap){
-        for ( int i = 0; i < LED.length; i++ ) {
-            LED[i].setOn(((ledMap>>i)&1)==1);
-        }
-    }
     
 
 }

@@ -37,8 +37,6 @@ import no.ntnu.item.ttm4160.sunspot.runtime.Scheduler;
 
 import com.sun.spot.peripheral.Spot;
 import com.sun.spot.sensorboard.EDemoBoard;
-import com.sun.spot.sensorboard.peripheral.ISwitch;
-import com.sun.spot.sensorboard.peripheral.ISwitchListener;
 import com.sun.spot.util.BootloaderListener;
 import com.sun.spot.util.IEEEAddress;
 
@@ -126,14 +124,6 @@ public class SunSpotApplication extends MIDlet{
 		new Thread(scheduler).start();
 
 	}
-
-
-
-	private void log(String message){
-		System.out.println(message);
-	}
-
-
 
 	protected void pauseApp() {
 		// This will never be called by the Squawk VM
